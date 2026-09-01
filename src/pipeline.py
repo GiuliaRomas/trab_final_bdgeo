@@ -1,0 +1,193 @@
+"""
+Pipeline principal do cubo Sentinel-2.
+
+Fluxo:
+
+    GeoParquet
+        ↓
+    seleção dos assets
+        ↓
+    COGs remotos
+        ↓
+    VirtualTIFF
+        ↓
+    VirtualiZarr / ManifestArray
+        ↓
+    cubos temporais
+        ↓
+    cubo multivariável
+
+O pipeline apenas orquestra as etapas.
+Os pixels dos COGs não são materializados durante a construção
+do cubo virtual.
+"""
+
+import xarray as xr
+
+from config import (COLECOES_RECOMENDADAS, VARIAVEIS_PRIORITARIAS_POR_COLECAO,)
+from geoparquet import ler_geoparquet
+from cube import construir_cubo
+
+
+def mostrar_configuracao(collection: str, assets=None,) -> None:
+    """
+    Exibe a configuração utilizada pelo pipeline.
+
+    Parameters
+    ----------
+    collection : str
+        ID da coleção STAC.
+    assets : iterable[str], optional
+        Assets que serão utilizados.
+        Se None, mostra os assets prioritários da coleção.
+    """
+
+    if collection not in COLECOES_RECOMENDADAS:
+        raise ValueError(f"Coleção '{collection}' não está definida em COLECOES_RECOMENDADAS.")
+
+    assets = tuple(assets) if assets is not None else VARIAVEIS_PRIORITARIAS_POR_COLECAO[collection]
+
+    print("=" * 60)
+    print("PIPELINE SENTINEL-2")
+    print("=" * 60)
+
+    print()
+    print("Coleção:")
+    print(f"  {collection}")
+
+    print()
+    print("Descrição:")
+    print(f"  {COLECOES_RECOMENDADAS[collection]}")
+
+    print()
+    print("Assets:")
+    for asset in assets:
+        print(f"  - {asset}")
+
+
+def executar_pipeline(collection: str = "S2-16D-2", assets=None,) -> xr.Dataset:
+    """
+    Executa o pipeline completo.
+
+    Parameters
+    ----------
+    collection : str
+        ID da coleção Sentinel-2.
+
+    assets : iterable[str], optional
+        Assets a serem utilizados.
+        Se None, utiliza os assets prioritários definidos
+        em config.py.
+
+    Returns
+    -------
+    xarray.Dataset
+        Cubo multivariável virtual.
+
+    Notes
+    -----
+    O GeoParquet deve ter sido criado previamente pela etapa
+    de ingestão.
+
+    A construção do cubo utiliza referências aos COGs remotos.
+    Os pixels não são materializados durante esta etapa.
+    """
+
+    if collection not in COLECOES_RECOMENDADAS:
+        raise ValueError(f"Coleção '{collection}' não está definida em COLECOES_RECOMENDADAS.")
+
+    mostrar_configuracao(collection=collection, assets=assets)
+
+    print()
+    print("=" * 60)
+    print("ETAPA 1 — GEOPARQUET")
+    print("=" * 60)
+
+    gdf = ler_geoparquet(collection)
+
+    if gdf.empty:
+        raise ValueError(f"O GeoParquet da coleção '{collection}' está vazio.")
+
+    print()
+    print(f"Registros encontrados: {len(gdf)}")
+
+    print()
+    print("=" * 60)
+    print("ETAPA 2 — CUBO VIRTUAL")
+    print("=" * 60)
+
+    ds = construir_cubo(gdf=gdf, collection=collection, assets=assets)
+
+    print()
+    print("=" * 60)
+    print("PIPELINE CONCLUÍDO")
+    print("=" * 60)
+
+    print()
+    print(ds)
+
+    return ds
+
+
+def validar_cubo(ds: xr.Dataset,) -> dict:
+    """
+    Valida a estrutura básica do cubo virtual.
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        Cubo construído pelo pipeline.
+
+    Returns
+    -------
+    dict
+        Informações sobre dimensões, variáveis, coordenadas
+        e virtualização dos arrays.
+    """
+
+    resultado = {
+        "dimensoes": dict(ds.sizes),
+        "variaveis": list(ds.data_vars),
+        "coordenadas": list(ds.coords),
+        "virtual": {},
+    }
+
+    for nome, da in ds.data_vars.items():
+        tipo_array = type(da.data).__name__
+
+        resultado["virtual"][nome] = {
+            "tipo": tipo_array,
+            "virtual": "ManifestArray" in tipo_array,
+        }
+
+    return resultado
+
+
+def mostrar_validacao(ds: xr.Dataset,) -> None:
+    """
+    Exibe um resumo da validação do cubo.
+    """
+
+    resultado = validar_cubo(ds)
+
+    print()
+    print("=" * 60)
+    print("VALIDAÇÃO DO CUBO")
+    print("=" * 60)
+
+    print()
+    print("Dimensões:")
+    for nome, tamanho in resultado["dimensoes"].items():
+        print(f"  {nome}: {tamanho}")
+
+    print()
+    print("Variáveis:")
+    for variavel in resultado["variaveis"]:
+        info = resultado["virtual"][variavel]
+
+        print(f"  {variavel}: {info['tipo']} (virtual={info['virtual']})")
+
+    print()
+    print("Coordenadas:")
+    for coordenada in resultado["coordenadas"]:
+        print(f"  - {coordenada}")
