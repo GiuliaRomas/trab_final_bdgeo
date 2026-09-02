@@ -8,11 +8,6 @@ Responsabilidades deste módulo:
     - Verificar consistência espacial.
     - Verificar propriedades dos arquivos raster.
     - Produzir um relatório de validação.
-
-Este módulo NÃO:
-    - cria Zarr;
-    - cria Icechunk;
-    - altera os arquivos de origem.
 """
 
 from pathlib import Path
@@ -22,35 +17,13 @@ import geopandas as gpd
 import pandas as pd
 import rasterio
 
-from config import (
-    BANDAS_PADRAO,
-    VARIAVEIS_PRIORITARIAS_POR_COLECAO,
-)
+from config import (BANDAS_PADRAO, VARIAVEIS_PRIORITARIAS_POR_COLECAO,)
 
 
-def validar_assets(
-    gdf: gpd.GeoDataFrame,
-    variaveis: Optional[Iterable[str]] = None,
-) -> pd.DataFrame:
+def validar_assets(gdf: gpd.GeoDataFrame, variaveis: Optional[Iterable[str]] = None,) -> pd.DataFrame:
     """
     Verifica se os assets desejados existem no GeoParquet.
-
-    Parameters
-    ----------
-    gdf : geopandas.GeoDataFrame
-        Índice GeoParquet.
-
-    variaveis : iterable of str, optional
-        Assets que serão verificados.
-
-        Se None, utiliza BANDAS_PADRAO.
-
-    Returns
-    -------
-    pandas.DataFrame
-        Relatório de disponibilidade dos assets.
     """
-
     if variaveis is None:
         variaveis = BANDAS_PADRAO
 
@@ -79,29 +52,10 @@ def validar_assets(
     return pd.DataFrame(registros)
 
 
-def validar_hrefs(
-    gdf: gpd.GeoDataFrame,
-    variaveis: Optional[Iterable[str]] = None,
-) -> pd.DataFrame:
+def validar_hrefs(gdf: gpd.GeoDataFrame, variaveis: Optional[Iterable[str]] = None,) -> pd.DataFrame:
     """
     Verifica se os HREFs dos assets possuem formato válido.
-
-    Não baixa os arquivos.
-
-    Parameters
-    ----------
-    gdf : geopandas.GeoDataFrame
-        Índice GeoParquet.
-
-    variaveis : iterable of str, optional
-        Assets que serão verificados.
-
-    Returns
-    -------
-    pandas.DataFrame
-        Relatório de validação.
     """
-
     if variaveis is None:
         variaveis = BANDAS_PADRAO
 
@@ -115,10 +69,8 @@ def validar_hrefs(
 
             if pd.isna(href) or not href:
                 status = "ausente"
-
             elif str(href).startswith(("http://", "https://", "s3://")):
                 status = "valido"
-
             else:
                 status = "formato_desconhecido"
 
@@ -127,28 +79,10 @@ def validar_hrefs(
     return pd.DataFrame(registros)
 
 
-def inspecionar_raster(
-    href: str,
-) -> dict:
+def inspecionar_raster(href: str,) -> dict:
     """
     Abre um raster remoto e extrai suas propriedades.
-
-    Parameters
-    ----------
-    href : str
-        URL ou caminho do raster.
-
-    Returns
-    -------
-    dict
-        Metadados do raster.
-
-    Notes
-    -----
-    A função utiliza rasterio para leitura dos metadados.
-    Os pixels não são carregados.
     """
-
     with rasterio.open(href) as src:
         return {
             "driver": src.driver,
@@ -165,31 +99,10 @@ def inspecionar_raster(
         }
 
 
-def inspecionar_asset(
-    gdf: gpd.GeoDataFrame,
-    item_id: str,
-    asset: str,
-) -> dict:
+def inspecionar_asset(gdf: gpd.GeoDataFrame, item_id: str, asset: str,) -> dict:
     """
     Inspeciona um asset específico de um item.
-
-    Parameters
-    ----------
-    gdf : geopandas.GeoDataFrame
-        Índice GeoParquet.
-
-    item_id : str
-        Identificador do item STAC.
-
-    asset : str
-        Nome do asset.
-
-    Returns
-    -------
-    dict
-        Metadados do raster.
     """
-
     registros = gdf[gdf["item_id"] == item_id]
 
     if registros.empty:
@@ -214,28 +127,11 @@ def inspecionar_asset(
     return metadados
 
 
-def verificar_consistencia(
-    gdf: gpd.GeoDataFrame,
-    asset: str = BANDAS_PADRAO[0],
-) -> pd.DataFrame:
+def verificar_consistencia(gdf: gpd.GeoDataFrame, asset: str = BANDAS_PADRAO[0],) -> pd.DataFrame:
     """
     Verifica a consistência espacial e estrutural de um asset
     entre diferentes cenas.
-
-    Parameters
-    ----------
-    gdf : geopandas.GeoDataFrame
-        Índice GeoParquet.
-
-    asset : str
-        Asset utilizado como referência.
-
-    Returns
-    -------
-    pandas.DataFrame
-        Metadados dos rasters analisados.
     """
-
     registros = []
 
     coluna = f"{asset}_href"
@@ -264,27 +160,10 @@ def verificar_consistencia(
     return pd.DataFrame(registros)
 
 
-def gerar_relatorio_consistencia(
-    gdf: gpd.GeoDataFrame,
-    asset: str = BANDAS_PADRAO[0],
-) -> dict:
+def gerar_relatorio_consistencia(gdf: gpd.GeoDataFrame, asset: str = BANDAS_PADRAO[0],) -> dict:
     """
     Gera um resumo da consistência dos rasters.
-
-    Parameters
-    ----------
-    gdf : geopandas.GeoDataFrame
-        Índice GeoParquet.
-
-    asset : str
-        Asset analisado.
-
-    Returns
-    -------
-    dict
-        Relatório resumido.
     """
-
     df = verificar_consistencia(gdf, asset=asset)
 
     if df.empty:

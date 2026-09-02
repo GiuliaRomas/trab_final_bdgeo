@@ -14,22 +14,6 @@ Fluxo:
     VirtualTIFF / VirtualiZarr
 
 O GeoParquet funciona como índice dos dados.
-
-Ele armazena:
-    - identificação dos itens;
-    - coleção;
-    - data/hora;
-    - geometria;
-    - bounding box;
-    - metadados STAC;
-    - HREFs dos assets.
-
-Este módulo NÃO:
-    - baixa os rasters;
-    - lê pixels;
-    - cria Zarr;
-    - cria Icechunk;
-    - virtualiza os COGs.
 """
 
 from pathlib import Path
@@ -41,29 +25,11 @@ from shapely.geometry import shape
 
 from config import (COLECAO_PADRAO, INDEX_DIR, VARIAVEIS_PRIORITARIAS_POR_COLECAO,)
 
-
 def itens_para_geodataframe(itens: Iterable, variaveis: Iterable[str] | None = None,) -> gpd.GeoDataFrame:
     """
     Converte itens STAC em GeoDataFrame.
-
     Cada linha representa um item/cena STAC.
-
-    Parameters
-    ----------
-    itens : iterable
-        Itens retornados pelo pystac-client.
-
-    variaveis : iterable of str, optional
-        Assets que devem ser registrados.
-        Se None, utiliza as variáveis prioritárias
-        da coleção de cada item.
-
-    Returns
-    -------
-    geopandas.GeoDataFrame
-        Índice contendo metadados e HREFs dos assets.
     """
-
     registros = []
 
     for item in itens:
@@ -109,28 +75,13 @@ def itens_para_geodataframe(itens: Iterable, variaveis: Iterable[str] | None = N
 def salvar_geoparquet(gdf: gpd.GeoDataFrame, caminho: str | Path,) -> Path:
     """
     Salva o índice GeoDataFrame em GeoParquet.
-
-    Parameters
-    ----------
-    gdf : geopandas.GeoDataFrame
-        Índice a ser salvo.
-
-    caminho : str ou Path
-        Caminho completo do arquivo .parquet.
-
-    Returns
-    -------
-    pathlib.Path
-        Caminho do arquivo criado.
     """
-
     caminho = Path(caminho)
 
     if caminho.suffix.lower() != ".parquet":
         raise ValueError("O caminho do GeoParquet deve terminar em '.parquet'.")
 
     caminho.parent.mkdir(parents=True, exist_ok=True)
-
     gdf.to_parquet(caminho, index=False)
 
     return caminho
@@ -139,21 +90,7 @@ def salvar_geoparquet(gdf: gpd.GeoDataFrame, caminho: str | Path,) -> Path:
 def ler_geoparquet(colecao: str = COLECAO_PADRAO, diretorio: str | Path = INDEX_DIR,) -> gpd.GeoDataFrame:
     """
     Lê o GeoParquet de uma coleção.
-
-    Parameters
-    ----------
-    colecao : str
-        ID da coleção STAC.
-
-    diretorio : str ou Path
-        Diretório onde os GeoParquets estão armazenados.
-
-    Returns
-    -------
-    geopandas.GeoDataFrame
-        Índice da coleção.
     """
-
     caminho = Path(diretorio) / f"{colecao}.parquet"
 
     if not caminho.exists():
@@ -174,7 +111,6 @@ def filtrar_por_geometria(gdf: gpd.GeoDataFrame, geometria,) -> gpd.GeoDataFrame
     A geometria deve estar em um sistema compatível
     com o CRS do GeoDataFrame.
     """
-
     if gdf.empty:
         return gdf.copy()
 
@@ -197,7 +133,6 @@ def filtrar_por_periodo(gdf: gpd.GeoDataFrame, data_inicio=None, data_fim=None,)
     """
     Filtra os itens por intervalo temporal.
     """
-
     if "datetime" not in gdf.columns:
         raise ValueError("O GeoParquet não possui a coluna 'datetime'.")
 
@@ -222,27 +157,7 @@ def consultar_geoparquet(gdf: gpd.GeoDataFrame, geometria=None, data_inicio=None
     """
     Executa uma consulta espacial e/ou temporal
     sobre o índice GeoParquet.
-
-    Parameters
-    ----------
-    gdf : geopandas.GeoDataFrame
-        Índice GeoParquet.
-
-    geometria : shapely geometry, optional
-        Área utilizada na consulta espacial.
-
-    data_inicio : str ou datetime, optional
-        Início do período.
-
-    data_fim : str ou datetime, optional
-        Final do período.
-
-    Returns
-    -------
-    geopandas.GeoDataFrame
-        Itens selecionados.
     """
-
     resultado = gdf
 
     if geometria is not None:

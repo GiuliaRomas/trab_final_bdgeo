@@ -17,7 +17,6 @@ Fluxo:
         ↓
     Dataset virtual
 
-Os pixels dos COGs não são materializados durante a construção.
 """
 
 from urllib.parse import urlparse
@@ -34,20 +33,14 @@ from virtual_tiff import VirtualTIFF
 from virtualizarr import open_virtual_mfdataset
 
 
-def preparar_tabela(
-    gdf: gpd.GeoDataFrame,
-    asset: str = "B04",
-) -> pd.DataFrame:
-
+def preparar_tabela(gdf: gpd.GeoDataFrame, asset: str = "B04",) -> pd.DataFrame:
     coluna = f"{asset}_href"
 
     if coluna not in gdf.columns:
         raise ValueError(f"Asset '{asset}' não encontrado no GeoParquet.")
 
     tabela = gdf[["item_id", "datetime", coluna]].dropna(subset=[coluna]).copy()
-
     tabela["datetime"] = pd.to_datetime(tabela["datetime"], utc=True).dt.tz_localize(None)
-
     tabela = tabela.sort_values("datetime").reset_index(drop=True)
 
     if tabela.empty:
@@ -56,16 +49,13 @@ def preparar_tabela(
     return tabela
 
 
-def criar_registry(
-    hrefs: list[str],
-) -> ObjectStoreRegistry:
+def criar_registry(hrefs: list[str],) -> ObjectStoreRegistry:
     """
     Cria o registry utilizado pelo VirtualiZarr.
 
     Os HREFs dos COGs são agrupados por domínio para que
     o acesso HTTP seja reutilizado.
     """
-
     if not hrefs:
         raise ValueError("Nenhum HREF foi fornecido para criar o registry.")
 
@@ -88,37 +78,16 @@ def criar_registry(
 def criar_parser() -> VirtualTIFF:
     """
     Cria o parser VirtualTIFF utilizado pelos COGs.
-
-    Os arquivos utilizados possuem a imagem principal no IFD 0.
     """
 
     return VirtualTIFF(ifd=0)
 
 
-def construir_cubo_temporal(
-    gdf: gpd.GeoDataFrame,
-    asset: str = "B04",
-) -> xr.Dataset:
+def construir_cubo_temporal(gdf: gpd.GeoDataFrame, asset: str = "B04",) -> xr.Dataset:
     """
     Constrói um cubo temporal virtual para um asset Sentinel-2.
 
     Os COGs permanecem como referências remotas.
-    Os pixels não são materializados durante a construção.
-
-    Parameters
-    ----------
-    gdf : geopandas.GeoDataFrame
-        Índice GeoParquet.
-    asset : str
-        Asset Sentinel-2, por exemplo "B04".
-
-    Returns
-    -------
-    xarray.Dataset
-        Dataset virtual com dimensões:
-            time
-            y
-            x
     """
 
     tabela = preparar_tabela(gdf, asset=asset)
@@ -156,15 +125,10 @@ def construir_cubo_temporal(
     return datasets
 
 
-def resumir_cubo(
-    ds: xr.Dataset,
-) -> None:
+def resumir_cubo(ds: xr.Dataset,) -> None:
     """
     Exibe informações estruturais do cubo virtual.
-
-    A função não acessa os pixels.
     """
-
     print()
     print("=" * 60)
     print("CUBO TEMPORAL VIRTUAL")

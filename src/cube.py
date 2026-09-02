@@ -2,10 +2,9 @@
 Construção do cubo de dados multivariável Sentinel-2.
 
 Fluxo:
-
     GeoParquet
         ↓
-    Assets prioritários
+    Assets
         ↓
     COGs
         ↓
@@ -16,25 +15,6 @@ Fluxo:
     Cubos temporais por variável
         ↓
     Dataset multivariável
-
-Exemplo de saída:
-
-    <xarray.Dataset>
-    Dimensions:
-        time: 4
-        y: 10560
-        x: 10560
-
-    Data variables:
-        B01
-        B02
-        B03
-        ...
-        NDVI
-        EVI
-        NBR
-        SCL
-        CLEAROB
 """
 
 import geopandas as gpd
@@ -59,11 +39,6 @@ def verificar_assets(gdf: gpd.GeoDataFrame, assets: tuple[str, ...],) -> dict:
     """
     Verifica quais assets possuem HREFs disponíveis
     no GeoParquet.
-
-    Returns
-    -------
-    dict
-        Dicionário com assets disponíveis e ausentes.
     """
 
     disponiveis = []
@@ -90,23 +65,6 @@ def verificar_assets(gdf: gpd.GeoDataFrame, assets: tuple[str, ...],) -> dict:
 def construir_cubo(gdf: gpd.GeoDataFrame, collection: str = "S2-16D-2", assets: tuple[str, ...] | None = None,) -> xr.Dataset:
     """
     Constrói o cubo virtual multivariável.
-
-    Parameters
-    ----------
-    gdf : geopandas.GeoDataFrame
-        Índice GeoParquet.
-
-    collection : str
-        Nome da coleção Sentinel-2.
-
-    assets : tuple[str, ...], optional
-        Assets a serem utilizados.
-        Se None, utiliza os definidos no config.py.
-
-    Returns
-    -------
-    xarray.Dataset
-        Cubo temporal multivariável virtual.
     """
 
     if assets is None:

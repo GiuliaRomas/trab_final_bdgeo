@@ -16,10 +16,6 @@ Fluxo:
     cubos temporais
         ↓
     cubo multivariável
-
-O pipeline apenas orquestra as etapas.
-Os pixels dos COGs não são materializados durante a construção
-do cubo virtual.
 """
 
 import xarray as xr
@@ -32,16 +28,7 @@ from cube import construir_cubo
 def mostrar_configuracao(collection: str, assets=None,) -> None:
     """
     Exibe a configuração utilizada pelo pipeline.
-
-    Parameters
-    ----------
-    collection : str
-        ID da coleção STAC.
-    assets : iterable[str], optional
-        Assets que serão utilizados.
-        Se None, mostra os assets prioritários da coleção.
     """
-
     if collection not in COLECOES_RECOMENDADAS:
         raise ValueError(f"Coleção '{collection}' não está definida em COLECOES_RECOMENDADAS.")
 
@@ -68,29 +55,6 @@ def mostrar_configuracao(collection: str, assets=None,) -> None:
 def executar_pipeline(collection: str = "S2-16D-2", assets=None,) -> xr.Dataset:
     """
     Executa o pipeline completo.
-
-    Parameters
-    ----------
-    collection : str
-        ID da coleção Sentinel-2.
-
-    assets : iterable[str], optional
-        Assets a serem utilizados.
-        Se None, utiliza os assets prioritários definidos
-        em config.py.
-
-    Returns
-    -------
-    xarray.Dataset
-        Cubo multivariável virtual.
-
-    Notes
-    -----
-    O GeoParquet deve ter sido criado previamente pela etapa
-    de ingestão.
-
-    A construção do cubo utiliza referências aos COGs remotos.
-    Os pixels não são materializados durante esta etapa.
     """
 
     if collection not in COLECOES_RECOMENDADAS:
@@ -132,17 +96,6 @@ def executar_pipeline(collection: str = "S2-16D-2", assets=None,) -> xr.Dataset:
 def validar_cubo(ds: xr.Dataset,) -> dict:
     """
     Valida a estrutura básica do cubo virtual.
-
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        Cubo construído pelo pipeline.
-
-    Returns
-    -------
-    dict
-        Informações sobre dimensões, variáveis, coordenadas
-        e virtualização dos arrays.
     """
 
     resultado = {
@@ -167,7 +120,6 @@ def mostrar_validacao(ds: xr.Dataset,) -> None:
     """
     Exibe um resumo da validação do cubo.
     """
-
     resultado = validar_cubo(ds)
 
     print()

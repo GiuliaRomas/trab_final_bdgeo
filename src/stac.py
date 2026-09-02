@@ -9,12 +9,6 @@ Responsabilidades deste módulo
 - Filtrar assets de interesse.
 - Extrair informações básicas dos itens.
 
-Este módulo NÃO:
-- cria GeoParquet;
-- cria Zarr;
-- cria Icechunk;
-- baixa pixels;
-- constrói cubos.
 """
 
 from datetime import datetime
@@ -27,11 +21,6 @@ from config import (STAC_URL, COLECAO_PADRAO, VARIAVEIS_PRIORITARIAS_POR_COLECAO
 def conectar_stac() -> Client:
     """
     Conecta ao catálogo STAC do INPE BDC.
-
-    Returns
-    -------
-    pystac_client.Client
-        Cliente conectado ao catálogo.
     """
     return Client.open(STAC_URL)
 
@@ -43,19 +32,14 @@ def listar_colecoes(catalogo: Client) -> list[str]:
     return [colecao.id for colecao in catalogo.get_collections()]
 
 
-def obter_colecao(
-    catalogo: Client,
-    colecao: str = COLECAO_PADRAO,
-):
+def obter_colecao(catalogo: Client, colecao: str = COLECAO_PADRAO,):
     """
     Obtém uma coleção específica.
     """
     return catalogo.get_collection(colecao)
 
 
-def obter_variaveis_prioritarias(
-    colecao: str = COLECAO_PADRAO,
-) -> tuple[str, ...]:
+def obter_variaveis_prioritarias(colecao: str = COLECAO_PADRAO,) -> tuple[str, ...]:
     """
     Retorna os assets prioritários configurados para uma coleção.
     """
@@ -65,17 +49,13 @@ def obter_variaveis_prioritarias(
         raise ValueError(f"Coleção '{colecao}' não possui variáveis prioritárias configuradas em config.py.") from exc
 
 
-def filtrar_assets(
-    item,
-    variaveis: Optional[Iterable[str]] = None,
-) -> dict:
+def filtrar_assets(item, variaveis: Optional[Iterable[str]] = None,) -> dict:
     """
     Retorna apenas os assets desejados de um item STAC.
 
-    Se `variaveis` for None, utiliza os assets prioritários
+    Se variaveis for None, utiliza os assets prioritários
     definidos no config.py para a coleção do item.
     """
-
     if variaveis is None:
         variaveis = obter_variaveis_prioritarias(item.collection_id)
 
@@ -85,7 +65,7 @@ def filtrar_assets(
 
 
 def buscar_itens(
-    catalogo: Client,
+catalogo: Client,
     colecao: str = COLECAO_PADRAO,
     bbox: Optional[list[float]] = None,
     intersects: Optional[dict] = None,
@@ -95,39 +75,8 @@ def buscar_itens(
 ):
     """
     Consulta itens STAC por coleção, área e período.
-
-    Parameters
-    ----------
-    catalogo : pystac_client.Client
-        Catálogo STAC conectado.
-
-    colecao : str
-        ID da coleção.
-
-    bbox : list[float], optional
-        Bounding box no formato:
-        [minx, miny, maxx, maxy].
-
-    intersects : dict, optional
-        Geometria GeoJSON utilizada para interseção espacial.
-
-    data_inicio : str ou datetime, optional
-        Data inicial.
-
-    data_fim : str ou datetime, optional
-        Data final.
-
-    max_itens : int, optional
-        Limite máximo de itens.
-
-    Returns
-    -------
-    list[pystac.Item]
-        Itens encontrados.
     """
-
     datetime_interval = _montar_intervalo_datetime(data_inicio, data_fim)
-
     busca = catalogo.search(collections=[colecao], bbox=bbox, intersects=intersects, datetime=datetime_interval, max_items=max_itens)
 
     return list(busca.items())
@@ -137,7 +86,6 @@ def resumo_item(item) -> dict:
     """
     Extrai informações essenciais de um item STAC.
     """
-
     return {
         "id": item.id,
         "collection": item.collection_id,
@@ -152,7 +100,6 @@ def resumo_assets(item) -> list[dict]:
     """
     Retorna informações básicas dos assets de um item.
     """
-
     return [
         {
             "id": asset_id,
@@ -165,19 +112,14 @@ def resumo_assets(item) -> list[dict]:
     ]
 
 
-def _montar_intervalo_datetime(
-    data_inicio: Optional[str | datetime],
-    data_fim: Optional[str | datetime],
-) -> Optional[str]:
+def _montar_intervalo_datetime(data_inicio: Optional[str | datetime], data_fim: Optional[str | datetime],) -> Optional[str]:
     """
     Monta o intervalo temporal utilizado pelo STAC API.
     """
-
     if data_inicio is None and data_fim is None:
         return None
 
     inicio = ".." if data_inicio is None else _formatar_data(data_inicio)
-
     fim = ".." if data_fim is None else _formatar_data(data_fim)
 
     return f"{inicio}/{fim}"
@@ -187,7 +129,6 @@ def _formatar_data(data: str | datetime) -> str:
     """
     Converte uma data para ISO 8601.
     """
-
     if isinstance(data, datetime):
         return data.isoformat()
 

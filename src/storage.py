@@ -32,11 +32,6 @@ def criar_configuracao_icechunk():
     """
     Cria a configuração do Icechunk e registra o container
     virtual correspondente aos dados do BDC.
-
-    Returns
-    -------
-    icechunk.RepositoryConfig
-        Configuração pronta para criar o repositório.
     """
 
     http_store = icechunk.http_store()
@@ -50,24 +45,11 @@ def criar_configuracao_icechunk():
     return config
 
 
-def criar_repositorio(
-    caminho: str | Path,
-):
+def criar_repositorio(caminho: str | Path,):
     """
     Cria um novo repositório Icechunk configurado para
     acessar os COGs remotos do BDC.
-
-    Parameters
-    ----------
-    caminho : str ou Path
-        Diretório do repositório.
-
-    Returns
-    -------
-    icechunk.Repository
-        Repositório criado.
     """
-
     caminho = Path(caminho)
 
     caminho.parent.mkdir(parents=True, exist_ok=True)
@@ -89,36 +71,15 @@ def criar_repositorio(
     repo = icechunk.Repository.create(storage=storage, config=config, authorize_virtual_chunk_access={BDC_DATA_URL: icechunk.Credentials.HttpAccess()})
 
     print()
-    print("✓ Repositório criado.")
+    print("[Sucesso] Repositório criado.")
 
     return repo
 
 
-def salvar_dataset_virtual(
-    ds,
-    repo,
-    mensagem: str = "Cubo Sentinel-2 virtual",
-):
+def salvar_dataset_virtual(ds, repo, mensagem: str = "Cubo Sentinel-2 virtual",):
     """
     Persiste um Dataset VirtualiZarr em Icechunk.
-
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        Dataset contendo ManifestArrays.
-
-    repo : icechunk.Repository
-        Repositório Icechunk.
-
-    mensagem : str
-        Mensagem do commit.
-
-    Returns
-    -------
-    str
-        Identificador do commit.
     """
-
     print()
     print("=" * 60)
     print("GRAVANDO CUBO VIRTUAL NO ICECHUNK")
@@ -140,7 +101,7 @@ def salvar_dataset_virtual(
 
     ds.vz.to_icechunk(session.store, mode="w")
 
-    print("✓ Referências gravadas.")
+    print("[Sucesso] Referências gravadas.")
 
     print()
     print("Realizando commit...")
@@ -148,25 +109,14 @@ def salvar_dataset_virtual(
     commit_id = session.commit(mensagem)
 
     print()
-    print(f"✓ Commit: {commit_id}")
+    print(f"[Sucesso] Commit: {commit_id}")
 
     return commit_id
 
 
-def abrir_repositorio(
-    caminho: str | Path,
-):
+def abrir_repositorio(caminho: str | Path,):
     """
     Abre um repositório Icechunk existente.
-
-    Parameters
-    ----------
-    caminho : str ou Path
-        Diretório do repositório.
-
-    Returns
-    -------
-    icechunk.Repository
     """
 
     caminho = Path(caminho)
@@ -178,6 +128,6 @@ def abrir_repositorio(
 
     repo = icechunk.Repository.open(storage=storage, authorize_virtual_chunk_access={BDC_DATA_URL: icechunk.Credentials.HttpAccess()})
     print()
-    print(f"✓ Repositório aberto: {caminho}")
+    print(f"[Sucesso] Repositório aberto: {caminho}")
 
     return repo
