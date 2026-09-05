@@ -3,10 +3,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 STAC_URL = "https://data.inpe.br/bdc/stac/v1/"
 
-COLECOES_RECOMENDADAS = {
-    "S2-16D-2": "Sentinel-2/MSI — composto de 16 dias",
-}
-
+COLECOES_RECOMENDADAS = { "S2-16D-2": "Sentinel-2/MSI — composto de 16 dias",}
 
 VARIAVEIS_PRIORITARIAS_POR_COLECAO = {
     "S2-16D-2": (
@@ -14,19 +11,7 @@ VARIAVEIS_PRIORITARIAS_POR_COLECAO = {
         "B02",
         "B03",
         "B04",
-        "B05",
-        "B06",
-        "B07",
-        "B08",
-        "B8A",
-        "B09",
-        "B11",
-        "B12",
-        "EVI",
-        "NBR",
         "NDVI",
-        "SCL",
-        "CLEAROB",
     ),
 }
 

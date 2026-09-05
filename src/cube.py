@@ -1,5 +1,5 @@
 """
-Construção do cubo de dados multivariável Sentinel-2.
+Construção do cubo de dados multivariável
 
 Fluxo:
     GeoParquet

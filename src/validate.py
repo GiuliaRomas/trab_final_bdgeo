@@ -1,13 +1,5 @@
 """
 Validação dos itens e assets Sentinel-2 antes da virtualização.
-
-Responsabilidades deste módulo:
-    - Verificar se os assets esperados existem.
-    - Verificar se os assets possuem HREF.
-    - Verificar consistência temporal.
-    - Verificar consistência espacial.
-    - Verificar propriedades dos arquivos raster.
-    - Produzir um relatório de validação.
 """
 
 from pathlib import Path
@@ -18,7 +10,6 @@ import pandas as pd
 import rasterio
 
 from config import (BANDAS_PADRAO, VARIAVEIS_PRIORITARIAS_POR_COLECAO,)
-
 
 def validar_assets(gdf: gpd.GeoDataFrame, variaveis: Optional[Iterable[str]] = None,) -> pd.DataFrame:
     """

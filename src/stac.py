@@ -1,14 +1,5 @@
 """
 Funções para acesso ao catálogo STAC do INPE BDC.
-
-Responsabilidades deste módulo
-------------------------------
-- Conectar ao catálogo STAC.
-- Listar e acessar coleções.
-- Consultar itens por área e período.
-- Filtrar assets de interesse.
-- Extrair informações básicas dos itens.
-
 """
 
 from datetime import datetime

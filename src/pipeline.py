@@ -1,5 +1,5 @@
 """
-Pipeline principal do cubo Sentinel-2.
+Pipeline principal 
 
 Fluxo:
 
